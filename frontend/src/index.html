@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📚 Bookstore Management 📚</title>
+    <!-- Tailwind CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-gray-100">
+
+    <!-- Navbar -->
+    <nav class="bg-blue-200 p-4 shadow-md">
+        <div class="max-w-7xl mx-auto flex justify-center">
+            <a href="#" class="text-2xl font-semibold text-gray-700">📚 Bookstore Management 📚</a>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-8">
+        <div id="message" class="text-green-600 mb-4"></div>
+
+        <h2 class="text-xl font-semibold mb-2 text-gray-800">Add Book 📖</h2>
+        <form id="addBookForm" class="mb-4">
+            <div class="flex flex-col mb-2">
+                <label for="id" class="mb-1 text-gray-700">🪪 ID:</label>
+                <input type="text" id="id" class="border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring focus:ring-pink-200">
+            </div>
+            <div class="flex flex-col mb-2">
+                <label for="title" class="mb-1 text-gray-700">📖 Title:</label>
+                <input type="text" id="title" class="border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring focus:ring-pink-200">
+            </div>
+            <div class="flex flex-col mb-2">
+                <label for="author" class="mb-1 text-gray-700">✍️ Author:</label>
+                <input type="text" id="author" class="border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring focus:ring-pink-200">
+            </div>
+            <div class="flex flex-col mb-2">
+                <label for="description" class="mb-1 text-gray-700">📝 Description:</label>
+                <textarea id="description" class="border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring focus:ring-pink-200"></textarea>
+            </div>
+            <div class="flex flex-col mb-2">
+                <label for="price" class="mb-1 text-gray-700">💲 Price:</label>
+                <input type="number" step="0.01" id="price" class="border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring focus:ring-pink-200">
+            </div>
+            <div class="flex flex-col mb-2">
+                <label for="disc" class="mb-1 text-gray-700">🔖 Discount:</label>
+                <input type="number" id="disc" class="border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring focus:ring-pink-200">
+            </div>
+            <button type="submit" class="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:bg-blue-600">Add Book</button>
+        </form>
+
+        <h2 class="text-xl font-semibold mb-2 text-gray-800">All Books 📚</h2>
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-white border border-gray-300">
+                <thead>
+                    <tr>
+                        <th class="py-2 px-4 border-b border-gray-300">ID</th>
+                        <th class="py-2 px-4 border-b border-gray-300">Title</th>
+                        <th class="py-2 px-4 border-b border-gray-300">Author</th>
+                        <th class="py-2 px-4 border-b border-gray-300">Description</th>
+                        <th class="py-2 px-4 border-b border-gray-300">Price</th>
+                        <th class="py-2 px-4 border-b border-gray-300">Discount</th>
+                        <th class="py-2 px-4 border-b border-gray-300">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="bookList">
+                    <!-- Books will be dynamically added here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        const addBookForm = document.getElementById('addBookForm');
+        const messageDiv = document.getElementById('message');
+        const bookListTbody = document.getElementById('bookList');
+
+        // Function to handle form submission for adding a book
+        addBookForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const id = document.getElementById('id').value;
+            const title = document.getElementById('title').value;
+            const author = document.getElementById('author').value;
+            const description = document.getElementById('description').value;
+            const price = parseFloat(document.getElementById('price').value);
+            const disc = parseInt(document.getElementById('disc').value);
+
+            const response = await fetch('/addBook', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    id,
+                    title,
+                    author,
+                    description,
+                    price,
+                    disc
+                })
+            });
+
+            const data = await response.json();
+            messageDiv.textContent = data.message;
+
+            // Refresh book list after adding
+            await fetchAllBooks();
+        });
+
+        // Function to fetch and display all books
+        async function fetchAllBooks() {
+            const response = await fetch('/allBooks');
+            const data = await response.json();
+
+            bookListTbody.innerHTML = '';
+            data.books.forEach(book => {
+                const tr = document.createElement('tr');
+
+                tr.innerHTML = `
+                    <td class="py-2 px-4 border-b border-gray-300">${book.id}</td>
+                    <td class="py-2 px-4 border-b border-gray-300">${book.title}</td>
+                    <td class="py-2 px-4 border-b border-gray-300">${book.author}</td>
+                    <td class="py-2 px-4 border-b border-gray-300">${book.description}</td>
+                    <td class="py-2 px-4 border-b border-gray-300">${book.price}</td>
+                    <td class="py-2 px-4 border-b border-gray-300">${book.disc}</td>
+                    <td class="py-2 px-4 border-b border-gray-300">
+                        <button class="bg-green-500 text-white py-1 px-2 rounded-md hover:bg-green-600 focus:outline-none focus:bg-green-600" onclick="updateBook('${book.id}')">Update</button>
+                        <button class="bg-red-500 text-white py-1 px-2 rounded-md hover:bg-red-600 focus:outline-none focus:bg-red-600" onclick="deleteBook('${book.id}')">Delete</button>
+                    </td>
+                `;
+
+                bookListTbody.appendChild(tr);
+            });
+        }
+
+        // Call function to fetch and display all books on page load
+        fetchAllBooks();
+
+        // Function to handle book deletion
+        async function deleteBook(bookId) {
+            const response = await fetch(`/deleteBook/${bookId}`, {
+                method: 'DELETE'
+            });
+            const data = await response.json();
+            messageDiv.textContent = data.message;
+
+            // Refresh book list after deletion
+            await fetchAllBooks();
+        }
+
+        // Function to handle book update
+        async function updateBook(bookId) {
+            const title = prompt('Enter updated book title:');
+            const author = prompt('Enter updated book author:');
+            const description = prompt('Enter updated book description:');
+            const price = parseFloat(prompt('Enter updated book price:'));
+            const disc = parseInt(prompt('Enter updated book discount:'));
+
+            const response = await fetch(`/updateBook/${bookId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    title,
+                    author,
+                    description,
+                    price,
+                    disc
+                })
+            });
+
+            const data = await response.json();
+            messageDiv.textContent = data.message;
+
+            // Refresh book list after update
+            await fetchAllBooks();
+        }
+    </script>
+
+    <!-- Footer -->
+    <footer class="bg-green-200 text-center py-4 text-gray-700 text-sm mt-6">
+        &copy; 5027221035 Zahra Sekar
+    </footer>
+
+</body>
+
+</html>
